@@ -20,6 +20,14 @@ const year =
 
 
 // ==========================================
+// DETECTAR DISPOSITIVO TOUCH
+// ==========================================
+
+const isMobile =
+    window.matchMedia("(max-width: 768px)").matches;
+
+
+// ==========================================
 // ANO AUTOMÁTICO
 // ==========================================
 
@@ -62,6 +70,12 @@ if (menuButton && nav) {
 
         nav.classList.toggle("open");
 
+        menuButton.classList.toggle("active");
+
+        document.body.classList.toggle(
+            "menu-open"
+        );
+
     });
 
 
@@ -73,6 +87,14 @@ if (menuButton && nav) {
 
                 nav.classList.remove("open");
 
+                menuButton.classList.remove(
+                    "active"
+                );
+
+                document.body.classList.remove(
+                    "menu-open"
+                );
+
             });
 
         });
@@ -81,7 +103,7 @@ if (menuButton && nav) {
 
 
 // ==========================================
-// ANIMAÇÃO DE ELEMENTOS NO SCROLL
+// ANIMAÇÃO DOS ELEMENTOS NO SCROLL
 // ==========================================
 
 const observer =
@@ -93,7 +115,9 @@ const observer =
 
                 if (entry.isIntersecting) {
 
-                    entry.target.classList.add("visible");
+                    entry.target.classList.add(
+                        "visible"
+                    );
 
                     observer.unobserve(
                         entry.target
@@ -125,9 +149,33 @@ document
 // PARALLAX DO HERO
 // ==========================================
 
-window.addEventListener("scroll", () => {
+function updateHeroParallax() {
 
-    if (!heroContent || !heroImage) return;
+    // Não executa no celular
+
+    if (
+        window.innerWidth <= 768 ||
+        !heroContent ||
+        !heroImage
+    ) {
+
+        if (heroContent) {
+
+            heroContent.style.transform = "";
+            heroContent.style.opacity = "";
+
+        }
+
+        if (heroImage) {
+
+            heroImage.style.transform = "";
+
+        }
+
+        return;
+
+    }
+
 
     const scroll =
         window.scrollY;
@@ -161,24 +209,43 @@ window.addEventListener("scroll", () => {
 
     }
 
-});
+}
+
+
+window.addEventListener(
+    "scroll",
+    updateHeroParallax,
+    {
+        passive: true
+    }
+);
 
 
 // ==========================================
 // CURSOR PERSONALIZADO
 // ==========================================
 
-if (cursor) {
+// Cursor não é utilizado em dispositivos touch
 
-    window.addEventListener("mousemove", event => {
+if (
+    cursor &&
+    window.matchMedia(
+        "(hover: hover) and (pointer: fine)"
+    ).matches
+) {
 
-        cursor.style.left =
-            `${event.clientX}px`;
+    window.addEventListener(
+        "mousemove",
+        event => {
 
-        cursor.style.top =
-            `${event.clientY}px`;
+            cursor.style.left =
+                `${event.clientX}px`;
 
-    });
+            cursor.style.top =
+                `${event.clientY}px`;
+
+        }
+    );
 
 
     // ==========================================
@@ -237,42 +304,58 @@ faqItems.forEach(item => {
     if (!button || !answer) return;
 
 
-    button.addEventListener("click", () => {
+    button.addEventListener(
+        "click",
+        () => {
 
-        const alreadyOpen =
-            item.classList.contains("active");
+            const alreadyOpen =
+                item.classList.contains(
+                    "active"
+                );
 
 
-        // Fecha todos
+            // Fecha todos
 
-        faqItems.forEach(other => {
+            faqItems.forEach(other => {
 
-            other.classList.remove("active");
+                other.classList.remove(
+                    "active"
+                );
 
-            const otherAnswer =
-                other.querySelector(".faq-answer");
 
-            if (otherAnswer) {
+                const otherAnswer =
+                    other.querySelector(
+                        ".faq-answer"
+                    );
 
-                otherAnswer.style.maxHeight = null;
+
+                if (otherAnswer) {
+
+                    otherAnswer.style.maxHeight =
+                        null;
+
+                }
+
+            });
+
+
+            // Abre o clicado
+
+            if (!alreadyOpen) {
+
+                item.classList.add(
+                    "active"
+                );
+
+
+                answer.style.maxHeight =
+                    answer.scrollHeight +
+                    "px";
 
             }
 
-        });
-
-
-        // Abre o clicado
-
-        if (!alreadyOpen) {
-
-            item.classList.add("active");
-
-            answer.style.maxHeight =
-                answer.scrollHeight + "px";
-
         }
-
-    });
+    );
 
 });
 
@@ -285,25 +368,98 @@ document
     .querySelectorAll('a[href^="#"]')
     .forEach(anchor => {
 
-        anchor.addEventListener("click", event => {
+        anchor.addEventListener(
+            "click",
+            event => {
 
-            const target =
-                document.querySelector(
-                    anchor.getAttribute("href")
-                );
-
-
-            if (!target) return;
-
-
-            event.preventDefault();
+                const target =
+                    document.querySelector(
+                        anchor.getAttribute(
+                            "href"
+                        )
+                    );
 
 
-            target.scrollIntoView({
-                behavior: "smooth",
-                block: "start"
-            });
+                if (!target) return;
+
+
+                event.preventDefault();
+
+
+                target.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+
+            }
+        );
+
+    });
+
+
+// ==========================================
+// CORRIGIR FAQ AO REDIMENSIONAR
+// ==========================================
+
+window.addEventListener(
+    "resize",
+    () => {
+
+        const mobile =
+            window.innerWidth <= 768;
+
+
+        // Remove efeitos do desktop
+
+        if (mobile) {
+
+            if (heroContent) {
+
+                heroContent.style.transform =
+                    "";
+
+                heroContent.style.opacity =
+                    "";
+
+            }
+
+            if (heroImage) {
+
+                heroImage.style.transform =
+                    "";
+
+            }
+
+        }
+
+
+        // Atualiza FAQ aberta
+
+        faqItems.forEach(item => {
+
+            if (
+                item.classList.contains(
+                    "active"
+                )
+            ) {
+
+                const answer =
+                    item.querySelector(
+                        ".faq-answer"
+                    );
+
+
+                if (answer) {
+
+                    answer.style.maxHeight =
+                        answer.scrollHeight +
+                        "px";
+
+                }
+
+            }
 
         });
 
-    });
+    }
+);
